@@ -11,9 +11,9 @@ import UIKit
 class ViewController: UIViewController {
     
     
-//    var sourceSymbol: String = "USD"
-//    var selectedCurrencies: Array<String> = ["GBP", "MXN"]
-//    var formatAmount: Int = 10
+    var sourceSymbol: String = "USD"
+    var selectedCurrencies = "EUR,GBP,JPY"
+    var formatAmount: Int = 10
     
 
     
@@ -21,17 +21,10 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-//        let urlComponents = "&source=\(sourceSymbol)&currencies\(selectedCurrencies)&format\(formatAmount)"
-//        let url = CurrencyData().baseUrl + urlComponents
 
-        //let url = "https://api.currencylayer.com/convert?access_key=19552d5b12448d31083079b95034ff63&from=USD&to=GBP&amount=10"
-        
-//        let url =  "http://apilayer.net/api/live?access_key=19552d5b12448d31083079b95034ff63&currencies=EUR,GBP,CAD,PLN&source=USD&format=1"
-        
-        //let url = "http://api.currencylayer.com/live?access_key=19552d5b12448d31083079b95034ff63&format=1"
-          
-        let url = "http://api.currencylayer.com/live?access_key=19552d5b12448d31083079b95034ff63&currencies=EUR,GBP,CAD,JPY&source=USD&format=1"
-        
+        let urlComponents = "&source=\(sourceSymbol)&currencies=\(selectedCurrencies)&format=\(formatAmount)"
+        let url = CurrencyData().baseUrl + urlComponents
+                  
         getData(url: url)
     }
     
@@ -59,9 +52,6 @@ class ViewController: UIViewController {
                     print(result?.source as Any)
                     print(result?.quotes as Any)
   
-//                    print(result?.info.timestamp as Any)
-//                    print(result?.info.quote as Any)
-
                 }
 
             } catch {
@@ -75,15 +65,3 @@ class ViewController: UIViewController {
 
 
 }
-
-
-/*
- 
- / "live" endpoint - request the most recent exchange rate data
- http://api.currencylayer.com/live
-     ? access_key = YOUR_ACCESS_KEY
-     & source = GBP
-     & currencies = USD,AUD,CAD,PLN,MXN
-     & format = 1
- 
- */
