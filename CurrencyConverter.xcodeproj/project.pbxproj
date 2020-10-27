@@ -14,6 +14,7 @@
 		8CABB24325454C4700E4DE07 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8CABB24225454C4700E4DE07 /* Assets.xcassets */; };
 		8CABB24625454C4700E4DE07 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8CABB24425454C4700E4DE07 /* LaunchScreen.storyboard */; };
 		8CABB25125454C4700E4DE07 /* CurrencyConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CABB25025454C4700E4DE07 /* CurrencyConverterTests.swift */; };
+		8CABB25C25454E5C00E4DE07 /* CurrencyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CABB25B25454E5C00E4DE07 /* CurrencyData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,7 @@
 		8CABB24C25454C4700E4DE07 /* CurrencyConverterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CurrencyConverterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CABB25025454C4700E4DE07 /* CurrencyConverterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyConverterTests.swift; sourceTree = "<group>"; };
 		8CABB25225454C4700E4DE07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8CABB25B25454E5C00E4DE07 /* CurrencyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 				8CABB24225454C4700E4DE07 /* Assets.xcassets */,
 				8CABB24425454C4700E4DE07 /* LaunchScreen.storyboard */,
 				8CABB24725454C4700E4DE07 /* Info.plist */,
+				8CABB25B25454E5C00E4DE07 /* CurrencyData.swift */,
 			);
 			path = CurrencyConverter;
 			sourceTree = "<group>";
@@ -202,6 +205,7 @@
 			files = (
 				8CABB23E25454C4500E4DE07 /* ViewController.swift in Sources */,
 				8CABB23A25454C4500E4DE07 /* AppDelegate.swift in Sources */,
+				8CABB25C25454E5C00E4DE07 /* CurrencyData.swift in Sources */,
 				8CABB23C25454C4500E4DE07 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
