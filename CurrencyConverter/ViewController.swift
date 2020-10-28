@@ -17,8 +17,7 @@ class ViewController: UIViewController {
     let listKey = "list"
 
     
-    var sourceSymbol: String = "USD"
-    //var selectedCurrencies = "EUR,GBP,JPY"
+    var sourceSymbol: String = "USD" // default currency symbol
     var selectedCurrencies = ""
     var formatAmount: Int = 10
     var quotsDict: Dictionary = [String: Float]()
@@ -28,6 +27,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
 
     
+    @IBOutlet weak var amount2Convert: UITextField!
+    
+    // UIPickerView related properties
     @IBOutlet weak var sourceCurrencyPicker: UIPickerView!
     var pickerView = UIPickerView()
     var pickerData: [String] = [String]()
@@ -43,6 +45,7 @@ class ViewController: UIViewController {
         getData(url: url)
     }
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -54,6 +57,11 @@ class ViewController: UIViewController {
      
         tableView.delegate = self
         tableView.dataSource = self
+        
+        
+        //if let row = pickerDataDescription.indexOf("United States Dollars") {
+//             pickerView.selectRow(2, inComponent: 0, animated: false)
+         //}
         
     }
 

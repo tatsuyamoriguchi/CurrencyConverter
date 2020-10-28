@@ -15,14 +15,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="0EZ-yQ-WZP">
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="0EZ-yQ-WZP">
                                 <rect key="frame" x="168" y="252" width="120" height="34"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="34" id="ZiK-ZD-sCd"/>
                                     <constraint firstAttribute="width" constant="120" id="z7X-NX-GcN"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
+                                <textInputTraits key="textInputTraits" keyboardType="numbersAndPunctuation"/>
                             </textField>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qg4-b1-80O">
                                 <rect key="frame" x="0.0" y="51" width="375" height="177"/>
@@ -118,6 +118,7 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
+                        <outlet property="amount2Convert" destination="0EZ-yQ-WZP" id="uHi-Ms-D8H"/>
                         <outlet property="sourceCurrencyPicker" destination="qg4-b1-80O" id="QOo-or-AKh"/>
                         <outlet property="tableView" destination="AlX-nc-wQd" id="d5f-dC-2dz"/>
                     </connections>
