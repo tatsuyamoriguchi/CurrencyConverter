@@ -22,7 +22,7 @@ class ViewController: UIViewController {
     var sourceSymbol: String = "USD" // default currency symbol
     var selectedCurrencies = ""
     var formatAmount: Int = 1 // default source (USD) value to convert, otherwise obtain from TextField
-    var quotsDict: Dictionary? = [String: Float]() // dictionary data from JSON
+    var quotesDict: Dictionary? = [String: Float]() // dictionary data from JSON
     var currencyTypes: Array<String> = [] // Currency Symbols array to store to local store
     var currencyValues: Array<Float> = [] // Currency values calculated from USD $1 This will be used to calculate the conversion amond all currencies, Store to the local store
     
@@ -120,7 +120,7 @@ class ViewController: UIViewController {
         print("currentTime")
         print(currentTime)
         // To set the threasholdTime to update currency conversion rate data to at least 30 minutes passed
-        let threasholdTime = Date().addingTimeInterval(-60 * 30)
+        let threasholdTime = Date().addingTimeInterval(-60 * 1) // use -60 * 30
         print("threasholdTime")
         print(threasholdTime)
  
@@ -158,19 +158,55 @@ class ViewController: UIViewController {
             // Get JSON data to update
             getData(url: url)
             
+            
             DispatchQueue.main.async {
                 // calculate converted values
-                //self.convertValue(sourceSymbol: <#T##String#>, value2convert: <#T##Double#>)
+                guard let inputValue = Float(self.amount2Convert.text!) else { return }
                 
+//              (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotesDict!)
+                var n = 0
+                for i in self.currencyTypes {
+                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: inputValue) else { return }
+                    self.currencyValues.append(value)
+                    
+                    n += 1
+                }
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+
             }
+            
             
             
         } else {
             // Otherwise use Core Data exiting data to calculate exchange rates
             print("lastTimeStamp >= threasholdTime")
+            print("Hmmm")
             DispatchQueue.main.async {
                 // calculate converted values
+                // calculate converted values
+                guard let inputValue = Float(self.amount2Convert.text!) else {
+                    print("test")
+                    return }
                 
+                //              (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotesDict!)
+                var n = 0
+                for i in self.currencyTypes {
+                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: inputValue) else {
+                        print("test2")
+                        return }
+                    self.currencyValues.append(value)
+                    print(value)
+                    
+                    n += 1
+                }
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+
             }
         }
        
@@ -179,11 +215,11 @@ class ViewController: UIViewController {
     
     
     // Calculate converted values
-    func convertValue(sourceSymbol: String, value2convert: Double ) -> Float {
-        // Get currency symbol from UIPickerView
+    func convertValue(sourceSymbol: String, targetSymbol: String, value2convert: Float ) -> Float? {
+        // Get currency symbol from UIPickerView currencySymbol
         
         // Get amount2convert from textfield
-        
+        //guard let inputValue = Float(amount2Convert.text!) else { return Float(1) }
         // calculate convertedValues from calculating conversion rates
         // with amount2convert vs USD
         // i.e. USDJPY = 1.04
@@ -192,8 +228,16 @@ class ViewController: UIViewController {
         // USDEUR: 1.33
         // 100 JPY =  104 * 1.33 = 138.32 EUR
         
-        var value = 0.00000000000
-        return Float(value)
+        // Combine sourceSymbol with "USD" since Core Data attribute data starts with USD
+        // due to free account limitation
+        let key = "USD\(sourceSymbol)"
+        let rate = retrieve(key: key)
+        let rate2Convert = value2convert * rate
+        let targetRate = retrieve(key: targetSymbol)
+        let convertedAmount = rate2Convert * targetRate
+        
+        
+        return convertedAmount
     }
     
 
@@ -216,21 +260,26 @@ class ViewController: UIViewController {
                 result = try JSONDecoder().decode(Response.self, from: data)
                 DispatchQueue.main.async {
                     
-                    self.quotsDict = result?.quotes
+                    self.quotesDict = result?.quotes
   
                     // currencyValues are exchanged values caluculated by USD $1 since REST API free account
                     // cannot change the source currency type
-                    (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotsDict!)
+                    (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotesDict!)
 
-//                    DispatchQueue.main.async {
-//                        self.tableView.reloadData()
-//                    }
-                    
-                    var n = 0
-                    for i in self.currencyTypes {
-                        self.save(key: i, value: self.currencyValues[n])
-                        n += 1
+                    print("self.currencyValues")
+                    print(self.currencyValues)
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
                     }
+                    
+//                    var n = 0
+//                    for i in self.currencyTypes {
+//                        print("i and currencyValues")
+//                        print(i)
+//                        print(self.currencyValues[n])
+//                        self.save(key: i, value: self.currencyValues[n])
+//                        n += 1
+//                    }
  
                 }
             } catch {
@@ -245,13 +294,20 @@ class ViewController: UIViewController {
 
     // Sort currency symbols and values dictionary
     func sortQuotesDict(quotesDict: Dictionary<String, Float>) -> (Array<String>, Array<Float>) {
+        print("")
+        let sortedArray = quotesDict.sorted{ $0.key < $1.key }
         
-        for i in quotesDict {
-            currencyTypes.append(i.key)
-            currencyValues.append(i.value)
+        var types = [String]()
+        var values = [Float]()
+        for (key, value) in sortedArray {
+
+            print(key, value)
+
+            types.append(key)
+            values.append(value)
         }
-        
-        return (currencyTypes, convertedValues)
+        print("")
+        return (types, values)
     }
 
 }
@@ -270,13 +326,13 @@ extension ViewController: UITableViewDelegate {
 extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return quotsDict?.count ?? 0
+        return quotesDict?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = currencyTypes[indexPath.row]
-        cell.detailTextLabel?.text = String(convertedValues[indexPath.row])
+        cell.detailTextLabel?.text = String(currencyValues[indexPath.row])
 
         return cell
     }
@@ -359,7 +415,6 @@ extension ViewController {
             do {
                 let results = try context.fetch(fetchRequest)
                 for object in results {
-//                    guard let objectData = object as? NSManagedObject else {continue}
                     let objectData = object
                     context.delete(objectData)
                 }
