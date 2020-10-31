@@ -161,9 +161,8 @@ class ViewController: UIViewController {
             
             DispatchQueue.main.async {
                 // calculate converted values
-                guard let inputValue = Float(self.amount2Convert.text!) else { return }
+                guard let inputValue = self.amount2Convert.text else { return }
                 
-//              (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotesDict!)
                 var n = 0
                 for i in self.currencyTypes {
                     guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: inputValue) else { return }
@@ -186,12 +185,10 @@ class ViewController: UIViewController {
             print("Hmmm")
             DispatchQueue.main.async {
                 // calculate converted values
-                // calculate converted values
-                guard let inputValue = Float(self.amount2Convert.text!) else {
+                guard let inputValue = self.amount2Convert.text else {
                     print("test")
                     return }
                 
-                //              (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotesDict!)
                 var n = 0
                 for i in self.currencyTypes {
                     guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: inputValue) else {
@@ -203,6 +200,7 @@ class ViewController: UIViewController {
                     n += 1
                 }
                 
+                // Need reloadData timing???
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
                 }
@@ -215,7 +213,7 @@ class ViewController: UIViewController {
     
     
     // Calculate converted values
-    func convertValue(sourceSymbol: String, targetSymbol: String, value2convert: Float ) -> Float? {
+    func convertValue(sourceSymbol: String, targetSymbol: String, value2convert: String ) -> Float? {
         // Get currency symbol from UIPickerView currencySymbol
         
         // Get amount2convert from textfield
@@ -230,9 +228,12 @@ class ViewController: UIViewController {
         
         // Combine sourceSymbol with "USD" since Core Data attribute data starts with USD
         // due to free account limitation
+        guard let inputValue = Float(value2convert) else {
+            print("Error in inputValue")
+            return 0 }
         let key = "USD\(sourceSymbol)"
         let rate = retrieve(key: key)
-        let rate2Convert = value2convert * rate
+        let rate2Convert = inputValue * rate
         let targetRate = retrieve(key: targetSymbol)
         let convertedAmount = rate2Convert * targetRate
         
@@ -266,20 +267,21 @@ class ViewController: UIViewController {
                     // cannot change the source currency type
                     (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotesDict!)
 
-                    print("self.currencyValues")
-                    print(self.currencyValues)
-                    DispatchQueue.main.async {
-                        self.tableView.reloadData()
+                    // Save the latest JSON currency rate data (vs. USD) to Core Data
+                    var n = 0
+                    for i in self.currencyTypes {
+
+                        // Save currency rate value to Core Data
+                        self.save(key: i, value: self.currencyValues[n])
+                        
+                        // Calulate convertedValue currencyValues[n] * conversion rate
+                        //let convertedValue = self.currencyValues[n] * 1 // conversion rate for each currency
+                        guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: self.amount2Convert.text!) else { return }
+                        // Store currency rate value to convertedValues array
+                        self.convertedValues.append(value)
+
+                        n += 1
                     }
-                    
-//                    var n = 0
-//                    for i in self.currencyTypes {
-//                        print("i and currencyValues")
-//                        print(i)
-//                        print(self.currencyValues[n])
-//                        self.save(key: i, value: self.currencyValues[n])
-//                        n += 1
-//                    }
  
                 }
             } catch {
@@ -290,6 +292,8 @@ class ViewController: UIViewController {
         task.resume()
                 
     }
+    
+    
     
 
     // Sort currency symbols and values dictionary
@@ -393,15 +397,16 @@ extension ViewController {
             do {
                 let results = try context.fetch(fetchRequest)
                 for result in results {
+                    // something wrong with currencyRate, USDAED's value???
                     convRate = result.currencyRate
-                    print(convRate as Any)
+//                    print("\(String(describing: result.currencySymbol)) convRate as Any :\(convRate as Any)")
                     return convRate!
                 }
             } catch {
                 print("Core Data Retrieve Error: \(error)")
             }
         }
-        return convRate!
+        return 0
     }
     
     
