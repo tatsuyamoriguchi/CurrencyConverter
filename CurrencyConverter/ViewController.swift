@@ -115,6 +115,27 @@ class ViewController: UIViewController {
     
     @IBAction func convertOnPressed(_ sender: UIButton) {
         
+        // Get amount2convert from textfield
+        // calculate converted values
+        guard let inputValue = self.amount2Convert.text else { return }
+
+        // For insance, User types 100 for JPY
+        guard let value2convert = Float(inputValue) else {
+            print("Error in changing Type inputValue to Float")
+            return  }
+
+        // Get currency symbol from UIPickerView currencySymbol: sourceSymbol
+        // Combine sourceSymbol with "USD" since Core Data attribute data starts with USD
+        // due to REST API free account limitation
+        let key = "USD\(sourceSymbol)"
+
+        
+        // USDJPY retrieve rate from Core Data
+        // i.e. USDJPY = 1.04
+        let rate = retrieve(key: key)
+        
+        
+        // Obtain currentTime to compare with threasholdTime
         let currentTime = Date()
         print("")
         print("currentTime")
@@ -155,17 +176,15 @@ class ViewController: UIViewController {
             
             // Delete Core Data entity data to update with new one
             deleteAllData("CurrencyEntity")
-            // Get JSON data to update
+            // Update USD conversion data via REST API JSON
             getData(url: url)
             
             
             DispatchQueue.main.async {
-                // calculate converted values
-                guard let inputValue = self.amount2Convert.text else { return }
                 
                 var n = 0
                 for i in self.currencyTypes {
-                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: inputValue) else { return }
+                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
                     self.currencyValues.append(value)
                     
                     n += 1
@@ -184,14 +203,11 @@ class ViewController: UIViewController {
             print("lastTimeStamp >= threasholdTime")
             print("Hmmm")
             DispatchQueue.main.async {
-                // calculate converted values
-                guard let inputValue = self.amount2Convert.text else {
-                    print("test")
-                    return }
+
                 
                 var n = 0
                 for i in self.currencyTypes {
-                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: inputValue) else {
+                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else {
                         print("test2")
                         return }
                     self.currencyValues.append(value)
@@ -213,29 +229,44 @@ class ViewController: UIViewController {
     
     
     // Calculate converted values
-    func convertValue(sourceSymbol: String, targetSymbol: String, value2convert: String ) -> Float? {
-        // Get currency symbol from UIPickerView currencySymbol
+    func convertValue(sourceSymbol: String, rate: Float, targetSymbol: String, value2convert: Float ) -> Float? {
         
-        // Get amount2convert from textfield
-        //guard let inputValue = Float(amount2Convert.text!) else { return Float(1) }
+        // USDJPY = 1.04
+        // xUSD = 100JPY / 1.04)
+        // xUSD = 96.1538462
+        //USDEUR = 1.33
+        // yEUR = xUSD / 1.33 = 72.2961249
+
+
+//        // Get amount2convert from textfield
+//        // For insance, User types 100 for JPY
+//        guard let inputValue = Float(value2convert) else {
+//            print("Error in inputValue")
+//            return 0 }
+//
+//        // Get currency symbol from UIPickerView currencySymbol: sourceSymbol
+//        // Combine sourceSymbol with "USD" since Core Data attribute data starts with USD
+//        // due to REST API free account limitation
+//        let key = "USD\(sourceSymbol)"
+//
+//
+//        // USDJPY retrieve rate from Core Data
+//        // i.e. USDJPY = 1.04
+//        let rate = retrieve(key: key)
+        
+        
         // calculate convertedValues from calculating conversion rates
         // with amount2convert vs USD
-        // i.e. USDJPY = 1.04
-        // User types 100 for JPY
-        // Conversion Calculation rate = 100 * 1.04 = 104
-        // USDEUR: 1.33
-        // 100 JPY =  104 * 1.33 = 138.32 EUR
-        
-        // Combine sourceSymbol with "USD" since Core Data attribute data starts with USD
-        // due to free account limitation
-        guard let inputValue = Float(value2convert) else {
-            print("Error in inputValue")
-            return 0 }
-        let key = "USD\(sourceSymbol)"
-        let rate = retrieve(key: key)
-        let rate2Convert = inputValue * rate
+        // Conversion Calculation rate 100JPY / 1.04 = 96.1538462JPY (=1USD)
+        let rate2Convert = value2convert / rate
+
+        // Retrieve targetRate from Core Data, i.e. 1USD = 1.33EUR
+        // USDEUR: 1.33 (1USD = 1.33EUR)
         let targetRate = retrieve(key: targetSymbol)
-        let convertedAmount = rate2Convert * targetRate
+        
+        // Calculate how much in target currency is sourceCurrency (JPY)
+        // 100 JPY =  96.1538462JPY / 1.33 = 72.2961253 JPY ( = 1EUR)
+        let convertedAmount = rate2Convert / targetRate
         
         
         return convertedAmount
@@ -245,7 +276,7 @@ class ViewController: UIViewController {
     
     
     
-    // Get exchange rate value vs USD JSON data to store to local store via Core Data
+    // Get exchange rate values vs USD JSON data to store onto local store via Core Data
     func getData(url: String) {
         let task = URLSession.shared.dataTask(with: URL(string: url)!, completionHandler: { data, response, error in
             
@@ -276,7 +307,8 @@ class ViewController: UIViewController {
                         
                         // Calulate convertedValue currencyValues[n] * conversion rate
                         //let convertedValue = self.currencyValues[n] * 1 // conversion rate for each currency
-                        guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, targetSymbol: i, value2convert: self.amount2Convert.text!) else { return }
+                        guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: 1, targetSymbol: i, value2convert: 1) else { return }
+                        
                         // Store currency rate value to convertedValues array
                         self.convertedValues.append(value)
 
@@ -389,7 +421,9 @@ extension ViewController {
     // Retrieve data via Core Data
     func retrieve(key: String) -> Float {
         var convRate: Float?
-        
+        print("")
+        print("key for retrieve: ")
+        print(key)
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
             let context = appDelegate.persistentContainer.viewContext
             let fetchRequest = NSFetchRequest<CurrencyEntity>(entityName: "CurrencyEntity")
@@ -398,9 +432,12 @@ extension ViewController {
                 let results = try context.fetch(fetchRequest)
                 for result in results {
                     // something wrong with currencyRate, USDAED's value???
+                    if result.currencySymbol == key {
                     convRate = result.currencyRate
+                    print(result)
 //                    print("\(String(describing: result.currencySymbol)) convRate as Any :\(convRate as Any)")
                     return convRate!
+                    }
                 }
             } catch {
                 print("Core Data Retrieve Error: \(error)")
