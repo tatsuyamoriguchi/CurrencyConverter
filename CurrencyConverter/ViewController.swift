@@ -26,8 +26,27 @@ class ViewController: UIViewController {
     var currencyTypes: Array<String> = [] // Currency Symbols array to store to local store
     var currencyValues: Array<Float> = [] // Currency values calculated from USD $1 This will be used to calculate the conversion amond all currencies, Store to the local store
     
-    var currencySymbols: Array<String> = [] // currency symbols to display in TableView
-    var convertedValues: Array<Float> = [] // converted currency values to display in TableView
+    
+     
+    
+    
+    
+//    var currencySymbols: Array<String> = [] // currency symbols to display in TableView
+    var currencySymbols: Array<String> = [] {
+        didSet {
+            tableView.reloadData()
+        }
+    }
+
+    
+    
+//    var convertedValues: Array<Float> = [] // converted currency values to display in TableView
+    var convertedValues: Array<Float> = [] {
+        didSet {
+            tableView.reloadData()
+        }
+    }
+
 
     
     @IBOutlet weak var tableView: UITableView!
@@ -44,9 +63,12 @@ class ViewController: UIViewController {
     
  
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
+//    override func viewDidLoad() {
+//        super.viewDidLoad()
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(false)
+    
         // Goal type PickerView for Goal sorting
         self.sourceCurrencyPicker.delegate = self
         self.sourceCurrencyPicker.dataSource = self
@@ -144,8 +166,9 @@ class ViewController: UIViewController {
         let threasholdTime = Date().addingTimeInterval(-60 * 1) // use -60 * 30
         print("threasholdTime")
         print(threasholdTime)
- 
         var lastTimeStamp: Date
+
+        
         
         // Check if timeStamp data exists, use it as lastTimeStamp
         if ((UserDefaults.standard.object(forKey: "timeStamp")) != nil) {
@@ -177,24 +200,40 @@ class ViewController: UIViewController {
             // Delete Core Data entity data to update with new one
             deleteAllData("CurrencyEntity")
             // Update USD conversion data via REST API JSON
-            getData(url: url)
-            
-            
-            DispatchQueue.main.async {
+            self.getData(url: url, currencyTypesCompletionHandler: { currencyTypes, error in
+                self.currencySymbols = currencyTypes!
                 
+            })
+                
+            
+            print("Hey 1")
+            DispatchQueue.main.async {
+            print("Hey 2")
+  
+                print("")
+                print("self.currencySymbols")
+                print(self.currencySymbols)
+                print("")
+
                 var n = 0
-                for i in self.currencyTypes {
-                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
-                    self.currencyValues.append(value)
+                for i in self.currencySymbols {
+                    print("Hey 3")
+                    print("self.sourceSymbol: \(self.sourceSymbol)")
+                    print("rate: \(rate)")
+                    print("i: \(i)")
+                    print("value2convert: \(value2convert)")
                     
+                    
+                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
+                    self.convertedValues.append(value)
+                    print("value")
+                    print(value)
                     n += 1
                 }
                 
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
-
+                
             }
+            
             
             
             
@@ -202,27 +241,39 @@ class ViewController: UIViewController {
             // Otherwise use Core Data exiting data to calculate exchange rates
             print("lastTimeStamp >= threasholdTime")
             print("Hmmm")
+
+// Read Core Data and sort
+
             DispatchQueue.main.async {
+                print("")
+                print("self.currencySymbols")
+                print(self.currencySymbols)
+                print("")
 
                 
                 var n = 0
-                for i in self.currencyTypes {
+                for i in self.currencySymbols {
                     guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else {
                         print("test2")
                         return }
-                    self.currencyValues.append(value)
+                    self.convertedValues.append(value)
+                    print("value")
                     print(value)
                     
                     n += 1
-                }
-                
-                // Need reloadData timing???
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
+
                 }
 
             }
         }
+        
+//        DispatchQueue.main.async {
+//            let refresh = UIRefreshControl()
+//            refresh.beginRefreshing()
+//            self.tableView.reloadData()
+//            refresh.endRefreshing()
+//        }
+
        
     }
     
@@ -263,11 +314,12 @@ class ViewController: UIViewController {
         // Retrieve targetRate from Core Data, i.e. 1USD = 1.33EUR
         // USDEUR: 1.33 (1USD = 1.33EUR)
         let targetRate = retrieve(key: targetSymbol)
+        print("targetRate: \(targetRate)")
         
         // Calculate how much in target currency is sourceCurrency (JPY)
         // 100 JPY =  96.1538462JPY / 1.33 = 72.2961253 JPY ( = 1EUR)
         let convertedAmount = rate2Convert / targetRate
-        
+        print("convertedAmount: \(convertedAmount)")
         
         return convertedAmount
     }
@@ -277,7 +329,7 @@ class ViewController: UIViewController {
     
     
     // Get exchange rate values vs USD JSON data to store onto local store via Core Data
-    func getData(url: String) {
+    func getData(url: String, currencyTypesCompletionHandler: @escaping (Array<String>?, Error?) -> Void) {
         let task = URLSession.shared.dataTask(with: URL(string: url)!, completionHandler: { data, response, error in
             
             guard let data = data, error == nil else {
@@ -293,11 +345,16 @@ class ViewController: UIViewController {
                 DispatchQueue.main.async {
                     
                     self.quotesDict = result?.quotes
+                    
   
                     // currencyValues are exchanged values caluculated by USD $1 since REST API free account
                     // cannot change the source currency type
                     (self.currencyTypes, self.currencyValues) = self.sortQuotesDict(quotesDict: self.quotesDict!)
 
+                    print("getData() currencyTypes")
+                    print(self.currencyTypes)
+                     currencyTypesCompletionHandler(self.currencyTypes, nil)
+                    
                     // Save the latest JSON currency rate data (vs. USD) to Core Data
                     var n = 0
                     for i in self.currencyTypes {
@@ -307,22 +364,29 @@ class ViewController: UIViewController {
                         
                         // Calulate convertedValue currencyValues[n] * conversion rate
                         //let convertedValue = self.currencyValues[n] * 1 // conversion rate for each currency
-                        guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: 1, targetSymbol: i, value2convert: 1) else { return }
+                        //guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: 1, targetSymbol: i, value2convert: 1) else { return }
                         
                         // Store currency rate value to convertedValues array
-                        self.convertedValues.append(value)
+//                        self.convertedValues.append(value)
+                        //self.convertedValues.append(self.currencyValues[n])
 
                         n += 1
                     }
+
+                    
  
                 }
             } catch {
                 print("func getData(url: String) JSON decoding Error: \(error)")
+                currencyTypesCompletionHandler(nil, error)
+                
             }
+            
+            
             
         })
         task.resume()
-                
+
     }
     
     
@@ -337,7 +401,7 @@ class ViewController: UIViewController {
         var values = [Float]()
         for (key, value) in sortedArray {
 
-            print(key, value)
+            //print(key, value)
 
             types.append(key)
             values.append(value)
@@ -362,13 +426,18 @@ extension ViewController: UITableViewDelegate {
 extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return quotesDict?.count ?? 0
+
+        print("")
+        print("convertedValues.count ")
+        print(convertedValues.count)
+        return convertedValues.count
+        
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = currencyTypes[indexPath.row]
-        cell.detailTextLabel?.text = String(currencyValues[indexPath.row])
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        cell.textLabel?.text = currencySymbols[indexPath.row]
+        cell.detailTextLabel?.text = String(convertedValues[indexPath.row])
 
         return cell
     }
@@ -411,7 +480,7 @@ extension ViewController {
             
             do {
                 try context.save()
-                print("Saved: \(key) = \(value)")
+                //print("Saved: \(key) = \(value)")
             } catch {
                 print("Core Data Saving Error: \(error)")
             }
@@ -427,16 +496,22 @@ extension ViewController {
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
             let context = appDelegate.persistentContainer.viewContext
             let fetchRequest = NSFetchRequest<CurrencyEntity>(entityName: "CurrencyEntity")
+            print("")
+            print("appDelegate")
+            print("")
             
             do {
                 let results = try context.fetch(fetchRequest)
+                print("inside do {")
                 for result in results {
                     // something wrong with currencyRate, USDAED's value???
                     if result.currencySymbol == key {
-                    convRate = result.currencyRate
-                    print(result)
-//                    print("\(String(describing: result.currencySymbol)) convRate as Any :\(convRate as Any)")
-                    return convRate!
+                    
+                        print("result")
+                        print(result)
+                        convRate = result.currencyRate
+                    
+                        return convRate!
                     }
                 }
             } catch {
