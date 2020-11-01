@@ -256,7 +256,7 @@ class ViewController: UIViewController {
 
 
             // Initialize convertedValues array to refresh
-            //self.convertedValues = []
+            self.convertedValues = []
             print("")
             print("self.convertedValues")
             print(self.convertedValues)
@@ -287,60 +287,25 @@ class ViewController: UIViewController {
     // Calculate converted values
     func convertValue(sourceSymbol: String, rate: Float, targetSymbol: String, value2convert: Float ) -> Float? {
         
-
-//        // Get amount2convert from textfield
-//        // For insance, User types 100 for JPY
-//        guard let inputValue = Float(value2convert) else {
-//            print("Error in inputValue")
-//            return 0 }
-//
-//        // Get currency symbol from UIPickerView currencySymbol: sourceSymbol
-//        // Combine sourceSymbol with "USD" since Core Data attribute data starts with USD
-//        // due to REST API free account limitation
-//        let key = "USD\(sourceSymbol)"
-//
-//
-//        // USDJPY retrieve rate from Core Data
-//        // i.e. USDJPY = 104.65504
-//        let rate = retrieve(key: key)
+        // Passed from parameters: sourceSymbol & value2convert: i.e. 100JPY
+        // Passed from parameter: rate: i.e. Get JPY exchange rate against USD: USDJPY = 104.65504
         
-        // sourceSymbol & value2convert: Input data from UI: i.e 100JPY
-        // rate: For instance, Get JPY exchange rate against USD: USDJPY = 1.04
-        
-        // JPYUSD = 1 / 1.04 = 0.961538461538462
-        // USD = 100 * 0.961538461538462 * USDUSD(1) = 96.1538461538462
+        // sourceUSDRate = 1 / 104.65504 = 0.009552
         let sourceUSDRate = 1 / rate
         print("rate: \(rate)")
         print("sourceUSDRate: \(sourceUSDRate)")
-
         
-        
-        // Get EUR exchange rate against USD: USDEUR = 1.33
+        // Get EUR exchange rate against USD: USDEUR = 0.856348
         let USDTargetRate = retrieve(key: targetSymbol)
         print("targetSymbol: \(targetSymbol)")
         print("USDTargetRate: \(USDTargetRate)")
         
-        // EURUSD = 1 / 1.33 = 0.75187969924812
-        let targetUSDRate = 1 / USDTargetRate
+        // EURUSD = 1 * 0.856348 = 0.75187969924812
+        let targetUSDRate = 1 * USDTargetRate
         print("targetUSDRate: \(targetUSDRate)")
         // EUR = 100 * 0.961538461538462 * 0.75187969924812EURUSD  = 72.296124927703881JPY
         let convertedAmount = value2convert * sourceUSDRate * targetUSDRate
         print("convertedAmount: \(convertedAmount)")
-
-        // calculate convertedValues from calculating conversion rates
-        // with amount2convert vs USD
-        // Conversion Calculation rate 100JPY / 104.65504 = 0.95552015USD
-
-        //let rate2Convert = value2convert / rate
-        
-        // Retrieve targetRate against USD from Core Data, i.e. 1USD = 0.856348EUR
-        // let USDTargetRate = retrieve(key: targetSymbol)
-        // print("USDTargetRate: \(USDTargetRate)")
-//        let targetUSDRate = 1 / USDTargetRate
-        
-        // Calculate how much in target currency is sourceCurrency (JPY)
-        // 100 JPY =  96.1538462JPY * 0.856348EUR = 0.81825777EUR
-        //let convertedAmount = rate2Convert * targetUSDRate
         
         return convertedAmount
     }
@@ -449,6 +414,8 @@ extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
 //        cell.textLabel?.text = currencySymbols[indexPath.row]
+        // Somewhat USDAED's description is missing and cells show each data with one wrong row
+        //
         cell.textLabel?.text = currencyDescriptionArray[indexPath.row]
         cell.detailTextLabel?.text = String(convertedValues[indexPath.row])
 
