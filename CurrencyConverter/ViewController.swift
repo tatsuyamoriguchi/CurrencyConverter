@@ -120,7 +120,7 @@ class ViewController: UIViewController {
                         
                         //let currencyDescription = String((i.key).dropFirst(3))
                         // i.value is currencyDescription, i.e. United States of America Dollars
-                        self.save(key: i.key, value: nil, currencyDescription: i.value)
+                        //self.save(key: i.key, value: nil, currencyDescription: i.value)
                         self.currencyDescriptionArray.append(i.value)
 
                         
@@ -210,19 +210,22 @@ class ViewController: UIViewController {
             
             // Delete Core Data entity data before updating with new data
             deleteAllData("CurrencyEntity")
+            //self.convertedValues = []
+            print("")
+            print("self.convertedValues")
+            print(self.convertedValues)
+            print("")
             
             // Update USD conversion data via REST API JSON
             self.getData(url: url, currencyTypesCompletionHandler: { currencyTypes, error in
  
-                self.currencySymbols = currencyTypes!
 
-            
+                self.currencySymbols = currencyTypes!
+                
+
             DispatchQueue.main.async {
                 self.getCurrencyDescriptionData()
-                print("currencyDescriptionArray")
-                print(self.currencyDescriptionArray)
-                self.convertedValues = []
-
+                
                 var n = 0
                 for i in self.currencySymbols {
                     
@@ -244,17 +247,16 @@ class ViewController: UIViewController {
 
 
             // Initialize convertedValues array to refresh
-            self.convertedValues = []
-            
+            //self.convertedValues = []
+            print("")
+            print("self.convertedValues")
+            print(self.convertedValues)
+            print("")
             
             
             
             DispatchQueue.main.async {
 
-                print("")
-                print("self.currencySymbols")
-                print(self.currencySymbols)
-                print("")
  
                 self.getCurrencyDescriptionData()
                 print("currencyDescriptionArray")
@@ -467,14 +469,12 @@ extension ViewController {
             
             if currencyDescription != "" {
                 newValue.setValue(currencyDescription, forKey: "currencyDescription")
-                print("currencyDescription")
-                print(currencyDescription)
             }
             
             
             do {
                 try context.save()
-                //print("Saved: \(key) = \(value)")
+                print("Saved: \(key) = \(String(describing: value)) = \(currencyDescription)")
             } catch {
                 print("Core Data Saving Error: \(error)")
             }
@@ -497,12 +497,12 @@ extension ViewController {
                     
                     if result.currencyDescription != nil {
                         currencyDescriptionArray.append(result.currencyDescription!)
-                        print("currencyDescription found: \(result.currencyDescription)")
+                    
                     } else { print("currencyDescription not found")}
                     
                     if result.currencySymbol != nil {
                         currencySymbols.append(result.currencySymbol!)
-                        print("currencySymbol found: \(result.currencySymbol)")
+                        
                     } else {
                         print("currencySymbol not found")
                     }
@@ -512,8 +512,6 @@ extension ViewController {
             } catch {
                 print("Core Data Retrieve Error: \(error)")
             }
-            print("currencyDescriptionArray")
-            print(currencyDescriptionArray)
         }
         
         
