@@ -287,12 +287,6 @@ class ViewController: UIViewController {
     // Calculate converted values
     func convertValue(sourceSymbol: String, rate: Float, targetSymbol: String, value2convert: Float ) -> Float? {
         
-        // USDJPY = 1.04
-        // xUSD = 100JPY / 1.04)
-        // xUSD = 96.1538462
-        //USDEUR = 1.33
-        // yEUR = xUSD / 1.33 = 72.2961249
-
 
 //        // Get amount2convert from textfield
 //        // For insance, User types 100 for JPY
@@ -310,18 +304,43 @@ class ViewController: UIViewController {
 //        // i.e. USDJPY = 104.65504
 //        let rate = retrieve(key: key)
         
+        // sourceSymbol & value2convert: Input data from UI: i.e 100JPY
+        // rate: For instance, Get JPY exchange rate against USD: USDJPY = 1.04
         
+        // JPYUSD = 1 / 1.04 = 0.961538461538462
+        // USD = 100 * 0.961538461538462 * USDUSD(1) = 96.1538461538462
+        let sourceUSDRate = 1 / rate
+        print("rate: \(rate)")
+        print("sourceUSDRate: \(sourceUSDRate)")
+
+        
+        
+        // Get EUR exchange rate against USD: USDEUR = 1.33
+        let USDTargetRate = retrieve(key: targetSymbol)
+        print("targetSymbol: \(targetSymbol)")
+        print("USDTargetRate: \(USDTargetRate)")
+        
+        // EURUSD = 1 / 1.33 = 0.75187969924812
+        let targetUSDRate = 1 / USDTargetRate
+        print("targetUSDRate: \(targetUSDRate)")
+        // EUR = 100 * 0.961538461538462 * 0.75187969924812EURUSD  = 72.296124927703881JPY
+        let convertedAmount = value2convert * sourceUSDRate * targetUSDRate
+        print("convertedAmount: \(convertedAmount)")
+
         // calculate convertedValues from calculating conversion rates
         // with amount2convert vs USD
         // Conversion Calculation rate 100JPY / 104.65504 = 0.95552015USD
-        let rate2Convert = value2convert / rate
 
-        // Retrieve targetRate from Core Data, i.e. 1USD = 0.856348EUR
-        let targetRate = retrieve(key: targetSymbol)
+        //let rate2Convert = value2convert / rate
+        
+        // Retrieve targetRate against USD from Core Data, i.e. 1USD = 0.856348EUR
+        // let USDTargetRate = retrieve(key: targetSymbol)
+        // print("USDTargetRate: \(USDTargetRate)")
+//        let targetUSDRate = 1 / USDTargetRate
         
         // Calculate how much in target currency is sourceCurrency (JPY)
         // 100 JPY =  96.1538462JPY * 0.856348EUR = 0.81825777EUR
-        let convertedAmount = rate2Convert * targetRate
+        //let convertedAmount = rate2Convert * targetUSDRate
         
         return convertedAmount
     }
