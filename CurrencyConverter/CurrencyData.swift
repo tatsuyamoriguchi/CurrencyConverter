@@ -13,8 +13,6 @@ class CurrencyData {
     // Need to encrypt access_key by git-secret or git-encrypt
 //    let baseUrl = "http://api.currencylayer.com/live?access_key=19552d5b12448d31083079b95034ff63"
     let baseUrl = "http://api.currencylayer.com/"
-    
-    
 }
 
 
@@ -23,7 +21,6 @@ struct SourceResponse: Codable {
     var terms: String?
     var privacy: String?
     var currencies: [String: String]
-
 }
 
 
