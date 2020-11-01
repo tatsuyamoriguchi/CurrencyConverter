@@ -33,7 +33,6 @@ class ViewController: UIViewController {
     
     
     
-//    var currencySymbols: Array<String> = [] // currency symbols to display in TableView
     var currencySymbols: Array<String> = [] {
         didSet {
             tableView.reloadData()
@@ -42,7 +41,6 @@ class ViewController: UIViewController {
 
     
     
-//    var convertedValues: Array<Float> = [] // converted currency values to display in TableView
     var convertedValues: Array<Float> = [] {
         didSet {
             tableView.reloadData()
@@ -113,6 +111,9 @@ class ViewController: UIViewController {
                     let sortedPickerDataDict = pickerDataDict.sorted { (first, second) -> Bool in
                         return first.value < second.value
                     }
+                    // Empty the array
+                    //self.currencyDescriptionArray = []
+
                     // Store sorted keys and values into arrays
                     for i in sortedPickerDataDict {
                         self.pickerDataSymbols.append(i.key)
@@ -122,9 +123,8 @@ class ViewController: UIViewController {
                         // i.value is currencyDescription, i.e. United States of America Dollars
                         //self.save(key: i.key, value: nil, currencyDescription: i.value)
                         self.currencyDescriptionArray.append(i.value)
-
-                        
                     }
+
                     // Store pickerDataDescription to pickerData to display in UIPickerView
                     DispatchQueue.main.async {
                         self.pickerData = self.pickerDataDescription
@@ -160,7 +160,7 @@ class ViewController: UIViewController {
         let key = "USD\(sourceSymbol)"
 
         
-        // USDJPY retrieve rate from Core Data
+        // retrieve source currency rate against USD from Core Data
         // i.e. USDJPY = 1.04
         let rate = retrieve(key: key)
         
@@ -210,7 +210,8 @@ class ViewController: UIViewController {
             
             // Delete Core Data entity data before updating with new data
             deleteAllData("CurrencyEntity")
-            //self.convertedValues = []
+            
+            self.convertedValues = []
             print("")
             print("self.convertedValues")
             print(self.convertedValues)
@@ -221,11 +222,19 @@ class ViewController: UIViewController {
  
 
                 self.currencySymbols = currencyTypes!
+                print("")
+                print("self.currencySymbols")
+                print(self.currencySymbols)
                 
 
             DispatchQueue.main.async {
-                self.getCurrencyDescriptionData()
-                
+
+                //self.getCurrencyDescriptionData()
+
+                print("")
+                print("self.currencySymbols")
+                print(self.currencySymbols)
+
                 var n = 0
                 for i in self.currencySymbols {
                     
@@ -257,11 +266,8 @@ class ViewController: UIViewController {
             
             DispatchQueue.main.async {
 
- 
+                // Watch this won't duplicate currencySymbols elements
                 self.getCurrencyDescriptionData()
-                print("currencyDescriptionArray")
-                print(self.currencyDescriptionArray)
-                
                 
                 var n = 0
                 for i in self.currencySymbols {
@@ -354,7 +360,7 @@ class ViewController: UIViewController {
                     for i in self.currencyTypes {
 
                         // Save currency rate value to Core Data
-                        self.save(key: i, value: self.currencyValues[n], currencyDescription: self.currencyDescriptionArray[n])
+                        self.saveData(key: i, value: self.currencyValues[n], currencyDescription: self.currencyDescriptionArray[n])
                         
                         
                         // Calulate convertedValue currencyValues[n] * conversion rate
@@ -367,6 +373,8 @@ class ViewController: UIViewController {
 
                         n += 1
                     }
+                    print("convertedValues")
+                    print(self.convertedValues)
  
                 }
             } catch {
@@ -457,7 +465,7 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource {
 extension ViewController {
 
     // Save key and value data to Core Data
-    func save(key: String, value: Float?, currencyDescription: String?) {
+    func saveData(key: String, value: Float?, currencyDescription: String?) {
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
             let context = appDelegate.persistentContainer.viewContext
             guard let entityDescription = NSEntityDescription.entity(forEntityName: "CurrencyEntity", in: context) else { return }
@@ -474,7 +482,7 @@ extension ViewController {
             
             do {
                 try context.save()
-                print("Saved: \(key) = \(String(describing: value)) = \(currencyDescription)")
+                //print("Saved: \(key) = \(String(describing: value)) = \(currencyDescription)")
             } catch {
                 print("Core Data Saving Error: \(error)")
             }
