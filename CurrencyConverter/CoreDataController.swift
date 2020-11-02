@@ -46,7 +46,7 @@ class CoreDataController: ViewController {
             // initialize arrays
             currencyDescriptionArray = []
             currencySymbols = []
-            
+
             
             do {
                 let results = try context.fetch(fetchRequest)

@@ -123,7 +123,7 @@
                     </view>
                     <connections>
                         <outlet property="amount2Convert" destination="0EZ-yQ-WZP" id="uHi-Ms-D8H"/>
-                        <outlet property="sourceCurrencyPicker" destination="qg4-b1-80O" id="QOo-or-AKh"/>
+                        <outlet property="sourceCurrencyPicker" destination="qg4-b1-80O" id="UaO-A6-Ztx"/>
                         <outlet property="tableView" destination="AlX-nc-wQd" id="d5f-dC-2dz"/>
                     </connections>
                 </viewController>

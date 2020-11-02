@@ -121,7 +121,7 @@ class ViewController: UIViewController {
                         // To display currency code in UIPickerView
                         let currencyCodeDesc = i.key + " " + i.value
                         
-                        self.pickerDataSymbols.append(i.key)
+                       self.pickerDataSymbols.append(i.key)
                         //self.pickerDataDescription.append(i.value)
                         self.pickerDataDescription.append(currencyCodeDesc)
                         
@@ -220,7 +220,7 @@ class ViewController: UIViewController {
                     for i in self.currencySymbols {
                         guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
                         self.convertedValues.append(value)
-                        //print("currencySumbol - convertedValue : \(i) - \(value)")
+                        //print("currencySymbol - convertedValue : \(i) - \(value)")
 
                         n += 1
                     }
@@ -233,22 +233,14 @@ class ViewController: UIViewController {
             // Otherwise use Core Data exiting data to calculate exchange rates
             print("")
             print("lastTimeStamp >= threasholdTime")
-            print("Hmmm")
-
 
             // Initialize convertedValues array to refresh
             self.convertedValues = []
-            print("")
-            print("self.convertedValues")
-            print(self.convertedValues)
-            print("")
-            
-            
             
             DispatchQueue.main.async {
 
-                // Watch this won't duplicate currencySymbols elements
-                CoreDataController().getCurrencyDescriptionData()
+                
+//                CoreDataController().getCurrencyDescriptionData()
                 
                 var n = 0
                 for i in self.currencySymbols {
@@ -363,16 +355,23 @@ class ViewController: UIViewController {
 
 
 
-extension ViewController: UITableViewDelegate {
+//extension ViewController: UITableViewDelegate {
+//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//
+//        // Maybe open another view??
+//        print("you tapped a row.")
+//    }
+//}
+
+
+extension ViewController: UITableViewDataSource, UITableViewDelegate {
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         // Maybe open another view??
         print("you tapped a row.")
     }
-}
 
-
-extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 
@@ -395,7 +394,7 @@ extension ViewController: UITableViewDataSource {
 }
 
 
-// PickerView
+// MARK: - PickerView
 extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -416,5 +415,8 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource {
         print("you selected a row, \(row), \(sourceSymbol)")
     }
 }
+
+
+
 
 
