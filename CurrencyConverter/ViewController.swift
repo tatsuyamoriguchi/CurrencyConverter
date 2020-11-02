@@ -109,20 +109,27 @@ class ViewController: UIViewController {
                     
                     // Sort data by value
                     let sortedPickerDataDict = pickerDataDict.sorted { (first, second) -> Bool in
-                        return first.value < second.value
+                        return first.key < second.key
+//                        return first.value < second.value
                     }
                     // Empty the array
                     //self.currencyDescriptionArray = []
 
                     // Store sorted keys and values into arrays
                     for i in sortedPickerDataDict {
+                        
+                        // To display currency code in UIPickerView
+                        let currencyCodeDesc = i.key + " " + i.value
+                        
                         self.pickerDataSymbols.append(i.key)
-                        self.pickerDataDescription.append(i.value)
+                        //self.pickerDataDescription.append(i.value)
+                        self.pickerDataDescription.append(currencyCodeDesc)
                         
                         //let currencyDescription = String((i.key).dropFirst(3))
                         // i.value is currencyDescription, i.e. United States of America Dollars
                         //self.save(key: i.key, value: nil, currencyDescription: i.value)
                         self.currencyDescriptionArray.append(i.value)
+                        print("i.key - i.value: \(i.key) - \(i.value)")
                     }
 
                     // Store pickerDataDescription to pickerData to display in UIPickerView
@@ -158,22 +165,16 @@ class ViewController: UIViewController {
         // Combine sourceSymbol with "USD" since Core Data attribute data starts with USD
         // due to REST API free account limitation
         let key = "USD\(sourceSymbol)"
-
         
         // retrieve source currency rate against USD from Core Data
         // i.e. USDJPY = 1.04
         let rate = retrieve(key: key)
         
-        
         // Obtain currentTime to compare with threasholdTime
         let currentTime = Date()
-        print("")
-        print("currentTime")
-        print(currentTime)
+
         // To set the threasholdTime to update currency conversion rate data to at least 30 minutes passed
         let threasholdTime = Date().addingTimeInterval(-60 * 1) // use -60 * 30
-        print("threasholdTime")
-        print(threasholdTime)
         var lastTimeStamp: Date
 
         
@@ -181,9 +182,6 @@ class ViewController: UIViewController {
         // Check if timeStamp data exists, use it as lastTimeStamp next time
         if ((UserDefaults.standard.object(forKey: "timeStamp")) != nil) {
             lastTimeStamp = UserDefaults.standard.object(forKey: "timeStamp") as! Date
-            print("")
-            print("lastTimeStamp")
-            print(lastTimeStamp)
             
         } else {
             // If timeStamp doesn't exist, store and use currentTime as lastTimeStamp
@@ -204,46 +202,29 @@ class ViewController: UIViewController {
             let urlComponents = "&source=USD&currencies=&format=1"
             
             let url = "\(CurrencyData().baseUrl)\(liveKey)?access_key=\(ACCESS_KEY)\(urlComponents)"
-            print("")
-            print("url to update currency rates")
-            print(url)
             
             // Delete Core Data entity data before updating with new data
             deleteAllData("CurrencyEntity")
             
             self.convertedValues = []
-            print("")
-            print("self.convertedValues")
-            print(self.convertedValues)
-            print("")
             
             // Update USD conversion data via REST API JSON
             self.getData(url: url, currencyTypesCompletionHandler: { currencyTypes, error in
- 
-
-                self.currencySymbols = currencyTypes!
-                print("")
-                print("self.currencySymbols")
-                print(self.currencySymbols)
                 
-
-            DispatchQueue.main.async {
-
-                //self.getCurrencyDescriptionData()
-
-                print("")
-                print("self.currencySymbols")
-                print(self.currencySymbols)
-
-                var n = 0
-                for i in self.currencySymbols {
+                self.currencySymbols = currencyTypes!
+                
+                DispatchQueue.main.async {
                     
-                    guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
-                    self.convertedValues.append(value)
-                    n += 1
+                    //self.getCurrencyDescriptionData()
+                    var n = 0
+                    for i in self.currencySymbols {
+                        guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
+                        self.convertedValues.append(value)
+                        
+                        print("currencySumbol - convertedValue : \(i) - \(value)")
+                        n += 1
+                    }
                 }
-            }
-            
             })
             
             
@@ -292,20 +273,15 @@ class ViewController: UIViewController {
         
         // sourceUSDRate = 1 / 104.65504 = 0.009552
         let sourceUSDRate = 1 / rate
-        print("rate: \(rate)")
-        print("sourceUSDRate: \(sourceUSDRate)")
         
         // Get EUR exchange rate against USD: USDEUR = 0.856348
         let USDTargetRate = retrieve(key: targetSymbol)
-        print("targetSymbol: \(targetSymbol)")
-        print("USDTargetRate: \(USDTargetRate)")
         
         // EURUSD = 1 * 0.856348 = 0.75187969924812
         let targetUSDRate = 1 * USDTargetRate
-        print("targetUSDRate: \(targetUSDRate)")
+
         // EUR = 100 * 0.961538461538462 * 0.75187969924812EURUSD  = 72.296124927703881JPY
         let convertedAmount = value2convert * sourceUSDRate * targetUSDRate
-        print("convertedAmount: \(convertedAmount)")
         
         return convertedAmount
     }
@@ -343,22 +319,16 @@ class ViewController: UIViewController {
                     var n = 0
                     for i in self.currencyTypes {
 
+                        // Combine key, currency symbol and curerncy description
+                        // i.e. JPN Japanese Yen for readability in tableView cells
+                        let combined = i + " " + self.currencyDescriptionArray[n]
+                        
                         // Save currency rate value to Core Data
-                        self.saveData(key: i, value: self.currencyValues[n], currencyDescription: self.currencyDescriptionArray[n])
-                        
-                        
-                        // Calulate convertedValue currencyValues[n] * conversion rate
-                        //let convertedValue = self.currencyValues[n] * 1 // conversion rate for each currency
-                        //guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: 1, targetSymbol: i, value2convert: 1) else { return }
-                        
-                        // Store currency rate value to convertedValues array
-//                        self.convertedValues.append(value)
-                        //self.convertedValues.append(self.currencyValues[n])
+                        self.saveData(key: i, value: self.currencyValues[n], currencyDescription: combined)
+                        print("currencyType - currencyValue: \(i) - \(self.currencyValues[n]) - \(combined) - \(n)")
 
                         n += 1
                     }
-                    print("convertedValues")
-                    print(self.convertedValues)
  
                 }
             } catch {
@@ -375,18 +345,17 @@ class ViewController: UIViewController {
 
     // Sort currency symbols and values dictionary
     func sortQuotesDict(quotesDict: Dictionary<String, Float>) -> (Array<String>, Array<Float>) {
-        print("")
+
         let sortedArray = quotesDict.sorted{ $0.key < $1.key }
         
         var types = [String]()
         var values = [Float]()
         for (key, value) in sortedArray {
 
-            //print(key, value)
             types.append(key)
             values.append(value)
         }
-        print("")
+        
         return (types, values)
     }
 
@@ -416,7 +385,8 @@ extension ViewController: UITableViewDataSource {
 //        cell.textLabel?.text = currencySymbols[indexPath.row]
         // Somewhat USDAED's description is missing and cells show each data with one wrong row
         //
-        cell.textLabel?.text = currencyDescriptionArray[indexPath.row]
+        //cell.textLabel?.text = currencyDescriptionArray[indexPath.row]
+        cell.textLabel?.text = pickerDataDescription[indexPath.row]  //currencyDescriptionArray[indexPath.row]
         cell.detailTextLabel?.text = String(convertedValues[indexPath.row])
 
         return cell
@@ -482,6 +452,11 @@ extension ViewController {
             let context = appDelegate.persistentContainer.viewContext
             let fetchRequest = NSFetchRequest<CurrencyEntity>(entityName: "CurrencyEntity")
             
+            // initialize arrays
+            currencyDescriptionArray = []
+            currencySymbols = []
+            
+            
             do {
                 let results = try context.fetch(fetchRequest)
                 
@@ -508,8 +483,6 @@ extension ViewController {
             }
         }
         
-        
-        
     }
     
     // Retrieve data via Core Data
@@ -524,11 +497,6 @@ extension ViewController {
                 let results = try context.fetch(fetchRequest)
                
                 for result in results {
-//                    // If currencyDescription data exists, albeiting to append it to currencyDescptionArray
-//                    // to display in tableView
-//                    if result.currencyDescription != nil {
-//                        currencyDescriptionArray.append(result.currencyDescription!)
-//                    }
 
                     // Return convRate if result.currencySymbol equals to key
                     if result.currencySymbol == key {
