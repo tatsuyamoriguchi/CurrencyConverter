@@ -129,7 +129,7 @@ class ViewController: UIViewController {
                         // i.value is currencyDescription, i.e. United States of America Dollars
                         //self.save(key: i.key, value: nil, currencyDescription: i.value)
                         self.currencyDescriptionArray.append(i.value)
-                        print("i.key - i.value: \(i.key) - \(i.value)")
+                        //print("i.key - i.value: \(i.key) - \(i.value)")
                     }
 
                     // Store pickerDataDescription to pickerData to display in UIPickerView
@@ -168,7 +168,7 @@ class ViewController: UIViewController {
         
         // retrieve source currency rate against USD from Core Data
         // i.e. USDJPY = 1.04
-        let rate = retrieve(key: key)
+        let rate = CoreDataController().retrieve(key: key)
         
         // Obtain currentTime to compare with threasholdTime
         let currentTime = Date()
@@ -204,7 +204,7 @@ class ViewController: UIViewController {
             let url = "\(CurrencyData().baseUrl)\(liveKey)?access_key=\(ACCESS_KEY)\(urlComponents)"
             
             // Delete Core Data entity data before updating with new data
-            deleteAllData("CurrencyEntity")
+            CoreDataController().deleteAllData("CurrencyEntity")
             
             self.convertedValues = []
             
@@ -220,8 +220,8 @@ class ViewController: UIViewController {
                     for i in self.currencySymbols {
                         guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
                         self.convertedValues.append(value)
-                        
-                        print("currencySumbol - convertedValue : \(i) - \(value)")
+                        //print("currencySumbol - convertedValue : \(i) - \(value)")
+
                         n += 1
                     }
                 }
@@ -248,7 +248,7 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
 
                 // Watch this won't duplicate currencySymbols elements
-                self.getCurrencyDescriptionData()
+                CoreDataController().getCurrencyDescriptionData()
                 
                 var n = 0
                 for i in self.currencySymbols {
@@ -275,7 +275,7 @@ class ViewController: UIViewController {
         let sourceUSDRate = 1 / rate
         
         // Get EUR exchange rate against USD: USDEUR = 0.856348
-        let USDTargetRate = retrieve(key: targetSymbol)
+        let USDTargetRate = CoreDataController().retrieve(key: targetSymbol)
         
         // EURUSD = 1 * 0.856348 = 0.75187969924812
         let targetUSDRate = 1 * USDTargetRate
@@ -324,8 +324,8 @@ class ViewController: UIViewController {
                         let combined = i + " " + self.currencyDescriptionArray[n]
                         
                         // Save currency rate value to Core Data
-                        self.saveData(key: i, value: self.currencyValues[n], currencyDescription: combined)
-                        print("currencyType - currencyValue: \(i) - \(self.currencyValues[n]) - \(combined) - \(n)")
+                        CoreDataController().saveData(key: i, value: self.currencyValues[n], currencyDescription: combined)
+                        //print("currencyType - currencyValue: \(i) - \(self.currencyValues[n]) - \(combined) - \(n)")
 
                         n += 1
                     }
@@ -418,119 +418,3 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource {
 }
 
 
-extension ViewController {
-
-    // Save key and value data to Core Data
-    func saveData(key: String, value: Float?, currencyDescription: String?) {
-        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-            let context = appDelegate.persistentContainer.viewContext
-            guard let entityDescription = NSEntityDescription.entity(forEntityName: "CurrencyEntity", in: context) else { return }
-            let newValue = NSManagedObject(entity: entityDescription, insertInto: context)
-            
-            newValue.setValue(key, forKey: "currencySymbol")
-            
-            if value != nil { newValue.setValue(value, forKey: "currencyRate") }
-            
-            if currencyDescription != "" {
-                newValue.setValue(currencyDescription, forKey: "currencyDescription")
-            }
-            
-            
-            do {
-                try context.save()
-                //print("Saved: \(key) = \(String(describing: value)) = \(currencyDescription)")
-            } catch {
-                print("Core Data Saving Error: \(error)")
-            }
-        }
-    }
-    
-    
-    func getCurrencyDescriptionData() {
-        
-        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-            let context = appDelegate.persistentContainer.viewContext
-            let fetchRequest = NSFetchRequest<CurrencyEntity>(entityName: "CurrencyEntity")
-            
-            // initialize arrays
-            currencyDescriptionArray = []
-            currencySymbols = []
-            
-            
-            do {
-                let results = try context.fetch(fetchRequest)
-                
-                for result in results {
-                    // If currencyDescription data exists, append it to currencyDescptionArray
-                    // to display in tableView
-                    
-                    if result.currencyDescription != nil {
-                        currencyDescriptionArray.append(result.currencyDescription!)
-                    
-                    } else { print("currencyDescription not found")}
-                    
-                    if result.currencySymbol != nil {
-                        currencySymbols.append(result.currencySymbol!)
-                        
-                    } else {
-                        print("currencySymbol not found")
-                    }
-                
-                }
-                
-            } catch {
-                print("Core Data Retrieve Error: \(error)")
-            }
-        }
-        
-    }
-    
-    // Retrieve data via Core Data
-    func retrieve(key: String) -> Float {
-        var convRate: Float?
-
-        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-            let context = appDelegate.persistentContainer.viewContext
-            let fetchRequest = NSFetchRequest<CurrencyEntity>(entityName: "CurrencyEntity")
-            
-            do {
-                let results = try context.fetch(fetchRequest)
-               
-                for result in results {
-
-                    // Return convRate if result.currencySymbol equals to key
-                    if result.currencySymbol == key {
-                        convRate = result.currencyRate
-                        
-                        return convRate!
-                    }
-                }
-            } catch {
-                print("Core Data Retrieve Error: \(error)")
-            }
-        }
-        return 0
-    }
-    
-    
-    
-    func deleteAllData(_ entity:String) {
-        
-        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-            let context = appDelegate.persistentContainer.viewContext
-            let fetchRequest = NSFetchRequest<CurrencyEntity>(entityName: entity)
-            fetchRequest.returnsObjectsAsFaults = false
-            do {
-                let results = try context.fetch(fetchRequest)
-                for object in results {
-                    let objectData = object
-                    context.delete(objectData)
-                }
-            } catch let error {
-                print("Detele all data in \(entity) error :", error)
-            }
-        }
-        
-    }
-
-}
