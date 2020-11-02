@@ -12,6 +12,7 @@ import CoreData
 
 class ViewController: UIViewController {
     
+    // MARK: - Properties
     
     // REST API access key info, Need to encrypt key!!!
     let ACCESS_KEY = "19552d5b12448d31083079b95034ff63"
@@ -61,7 +62,7 @@ class ViewController: UIViewController {
     var pickerDataSymbols: [String] = [String]()
     var pickerDataDescription: [String] = [String]()
      
-    
+    // MARK: - func viewDidLoad()
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -76,15 +77,15 @@ class ViewController: UIViewController {
         // use the local data
         getSourceData() // Get the latest available currency list from REST API
      
-        tableView.delegate = self
-        tableView.dataSource = self
-        
+        self.tableView.delegate = self
+        self.tableView.dataSource = self
+
     }
     
     
     
 
-    // Get JSON data for UIPickerView
+    // MARK: - func getSourceData() Get Currency symbol and description JSON data for UIPickerView
     func getSourceData()  {
         var pickerDataDict = [String:String]()
         let urlComponents = "&source=\(sourceSymbol)&currencies=\(selectedCurrencies)&format=\(formatAmount)"
@@ -110,10 +111,7 @@ class ViewController: UIViewController {
                     // Sort data by value
                     let sortedPickerDataDict = pickerDataDict.sorted { (first, second) -> Bool in
                         return first.key < second.key
-//                        return first.value < second.value
                     }
-                    // Empty the array
-                    //self.currencyDescriptionArray = []
 
                     // Store sorted keys and values into arrays
                     for i in sortedPickerDataDict {
@@ -121,15 +119,9 @@ class ViewController: UIViewController {
                         // To display currency code in UIPickerView
                         let currencyCodeDesc = i.key + " " + i.value
                         
-                       self.pickerDataSymbols.append(i.key)
-                        //self.pickerDataDescription.append(i.value)
+                        self.pickerDataSymbols.append(i.key)
                         self.pickerDataDescription.append(currencyCodeDesc)
-                        
-                        //let currencyDescription = String((i.key).dropFirst(3))
-                        // i.value is currencyDescription, i.e. United States of America Dollars
-                        //self.save(key: i.key, value: nil, currencyDescription: i.value)
                         self.currencyDescriptionArray.append(i.value)
-                        //print("i.key - i.value: \(i.key) - \(i.value)")
                     }
 
                     // Store pickerDataDescription to pickerData to display in UIPickerView
@@ -150,6 +142,7 @@ class ViewController: UIViewController {
     }
     
     
+    // MARK: - @IBAction func convertOnPressed(_ sender: UIButton)
     @IBAction func convertOnPressed(_ sender: UIButton) {
         
         // Get amount2convert from textfield
@@ -220,7 +213,6 @@ class ViewController: UIViewController {
                     for i in self.currencySymbols {
                         guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
                         self.convertedValues.append(value)
-                        //print("currencySymbol - convertedValue : \(i) - \(value)")
 
                         n += 1
                     }
@@ -229,8 +221,8 @@ class ViewController: UIViewController {
             
             
         } else {
-            // This part doesn't load tableView data, self.currencySymbols = [] nil!!!!
-            // Otherwise use Core Data exiting data to calculate exchange rates
+            // Calculating converted values within 30 minutes
+            // Use Core Data exiting data to calculate exchange rates
             print("")
             print("lastTimeStamp >= threasholdTime")
 
@@ -239,9 +231,6 @@ class ViewController: UIViewController {
             
             DispatchQueue.main.async {
 
-                
-//                CoreDataController().getCurrencyDescriptionData()
-                
                 var n = 0
                 for i in self.currencySymbols {
                     guard let value = self.convertValue(sourceSymbol: self.sourceSymbol, rate: rate, targetSymbol: i, value2convert: value2convert) else { return }
@@ -257,32 +246,7 @@ class ViewController: UIViewController {
     
     
     
-    // Calculate converted values
-    func convertValue(sourceSymbol: String, rate: Float, targetSymbol: String, value2convert: Float ) -> Float? {
-        
-        // Passed from parameters: sourceSymbol & value2convert: i.e. 100JPY
-        // Passed from parameter: rate: i.e. Get JPY exchange rate against USD: USDJPY = 104.65504
-        
-        // sourceUSDRate = 1 / 104.65504 = 0.009552
-        let sourceUSDRate = 1 / rate
-        
-        // Get EUR exchange rate against USD: USDEUR = 0.856348
-        let USDTargetRate = CoreDataController().retrieve(key: targetSymbol)
-        
-        // EURUSD = 1 * 0.856348 = 0.75187969924812
-        let targetUSDRate = 1 * USDTargetRate
-
-        // EUR = 100 * 0.961538461538462 * 0.75187969924812EURUSD  = 72.296124927703881JPY
-        let convertedAmount = value2convert * sourceUSDRate * targetUSDRate
-        
-        return convertedAmount
-    }
-    
-
-    
-    
-    
-    // Get exchange rate values vs USD JSON data to store onto local store via Core Data
+    // MARK: - getData() Get exchange rate values vs USD JSON data to store onto local store via Core Data
     func getData(url: String, currencyTypesCompletionHandler: @escaping (Array<String>?, Error?) -> Void) {
         let task = URLSession.shared.dataTask(with: URL(string: url)!, completionHandler: { data, response, error in
             
@@ -317,7 +281,6 @@ class ViewController: UIViewController {
                         
                         // Save currency rate value to Core Data
                         CoreDataController().saveData(key: i, value: self.currencyValues[n], currencyDescription: combined)
-                        //print("currencyType - currencyValue: \(i) - \(self.currencyValues[n]) - \(combined) - \(n)")
 
                         n += 1
                     }
@@ -333,9 +296,29 @@ class ViewController: UIViewController {
     }
     
     
-    
+    // MARK: - Calculate converted values
+    func convertValue(sourceSymbol: String, rate: Float, targetSymbol: String, value2convert: Float ) -> Float? {
+        
+        // Passed from parameters: sourceSymbol & value2convert: i.e. 100JPY
+        // Passed from parameter: rate: i.e. Get JPY exchange rate against USD: USDJPY = 104.65504
+        
+        // sourceUSDRate = 1 / 104.65504 = 0.009552
+        let sourceUSDRate = 1 / rate
+        
+        // Get EUR exchange rate against USD: USDEUR = 0.856348
+        let USDTargetRate = CoreDataController().retrieve(key: targetSymbol)
+        
+        // EURUSD = 1 * 0.856348 = 0.75187969924812
+        let targetUSDRate = 1 * USDTargetRate
 
-    // Sort currency symbols and values dictionary
+        // EUR = 100 * 0.961538461538462 * 0.75187969924812EURUSD  = 72.296124927703881JPY
+        let convertedAmount = value2convert * sourceUSDRate * targetUSDRate
+        
+        return convertedAmount
+    }
+
+
+    // MARK: - Sort currency symbols and values dictionary
     func sortQuotesDict(quotesDict: Dictionary<String, Float>) -> (Array<String>, Array<Float>) {
 
         let sortedArray = quotesDict.sorted{ $0.key < $1.key }
@@ -354,16 +337,7 @@ class ViewController: UIViewController {
 }
 
 
-
-//extension ViewController: UITableViewDelegate {
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//
-//        // Maybe open another view??
-//        print("you tapped a row.")
-//    }
-//}
-
-
+// MARK: - TableView
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -415,8 +389,3 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource {
         print("you selected a row, \(row), \(sourceSymbol)")
     }
 }
-
-
-
-
-
