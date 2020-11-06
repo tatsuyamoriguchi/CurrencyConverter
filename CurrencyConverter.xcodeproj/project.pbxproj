@@ -31,6 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8C360E1025561A41001F8C5E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		8C70D72A254A7A7C00E7B0CE /* CurrencyModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CurrencyModel.xcdatamodel; sourceTree = "<group>"; };
 		8C734495254FA863001AC951 /* CoreDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataController.swift; sourceTree = "<group>"; };
 		8CABB23625454C4500E4DE07 /* CurrencyConverter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CurrencyConverter.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -68,6 +69,7 @@
 		8CABB22D25454C4500E4DE07 = {
 			isa = PBXGroup;
 			children = (
+				8C360E1025561A41001F8C5E /* README.md */,
 				8CABB23825454C4500E4DE07 /* CurrencyConverter */,
 				8CABB24F25454C4700E4DE07 /* CurrencyConverterTests */,
 				8CABB23725454C4500E4DE07 /* Products */,
