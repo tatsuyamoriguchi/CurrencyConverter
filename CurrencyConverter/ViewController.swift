@@ -14,8 +14,8 @@ class ViewController: UIViewController {
     
     // MARK: - Properties
     
-    // REST API access key info, Need to encrypt key!!!
-    let ACCESS_KEY = "19552d5b12448d31083079b95034ff63"
+    // Obtain your REST API access key from the site
+    let ACCESS_KEY = ""
     let liveKey = "live"
     let listKey = "list"
 
